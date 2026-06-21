@@ -1,0 +1,106 @@
+[gd_scene load_steps=13 format=3]
+
+[ext_resource type="Shader" path="res://incandescent_tube.gdshader" id="1_shader"]
+[ext_resource type="Script" path="res://tube_flicker.gd" id="2_script"]
+[ext_resource type="Script" path="res://camera_controller.gd" id="3_camera"]
+
+[sub_resource type="Environment" id="Env_1"]
+background_mode = 1
+background_color = Color(0.02, 0.02, 0.03, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.08, 0.08, 0.1, 1)
+ambient_light_energy = 0.4
+tonemap_mode = 2
+glow_enabled = true
+glow_intensity = 0.9
+glow_bloom = 0.15
+glow_hdr_threshold = 1.1
+glow_blend_mode = 1
+
+[sub_resource type="ShaderMaterial" id="Mat_tube"]
+render_priority = 0
+shader = ExtResource("1_shader")
+shader_parameter/base_color = Color(1, 0.82, 0.55, 1)
+shader_parameter/hot_color = Color(1, 0.95, 0.85, 1)
+shader_parameter/emission_strength = 6.0
+shader_parameter/flicker_speed = 11.0
+shader_parameter/flicker_amount = 0.18
+shader_parameter/blink_chance = 0.04
+shader_parameter/instability = 0.45
+shader_parameter/band_scale = 5.0
+shader_parameter/band_speed = 0.9
+
+[sub_resource type="StandardMaterial3D" id="Mat_floor"]
+albedo_color = Color(0.22, 0.22, 0.24, 1)
+roughness = 0.85
+metallic = 0.0
+
+[sub_resource type="StandardMaterial3D" id="Mat_wall"]
+albedo_color = Color(0.35, 0.33, 0.3, 1)
+roughness = 0.95
+metallic = 0.0
+
+[sub_resource type="BoxMesh" id="Box_floor"]
+size = Vector3(12, 0.2, 12)
+
+[sub_resource type="BoxMesh" id="Box_wall_back"]
+size = Vector3(12, 5, 0.25)
+
+[sub_resource type="BoxMesh" id="Box_wall_left"]
+size = Vector3(0.25, 5, 12)
+
+[sub_resource type="BoxMesh" id="Box_tube"]
+size = Vector3(5, 0.18, 0.18)
+
+[sub_resource type="CapsuleMesh" id="Cap_tube_ends"]
+radius = 0.11
+height = 5.2
+
+[node name="Main" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Env_1")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(0.874, 0, -0.485, -0.0469, 0.994, -0.0845, 0.483, 0.0967, 0.87, 5, 3, 6)
+fov = 65.0
+script = ExtResource("3_camera")
+
+[node name="FillLight" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.7, -0.5, 0.5, 0, 0.707, 0.707, -0.7, -0.5, 0.5, 0, 6, 0)
+light_energy = 0.06
+shadow_enabled = true
+
+[node name="Floor" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
+mesh = SubResource("Box_floor")
+surface_material_override/0 = SubResource("Mat_floor")
+
+[node name="WallBack" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, -6)
+mesh = SubResource("Box_wall_back")
+surface_material_override/0 = SubResource("Mat_wall")
+
+[node name="WallLeft" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 2.5, 0)
+mesh = SubResource("Box_wall_left")
+surface_material_override/0 = SubResource("Mat_wall")
+
+[node name="TubeLight" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.2, -5.78)
+mesh = SubResource("Box_tube")
+surface_material_override/0 = SubResource("Mat_tube")
+
+[node name="TubeEndCaps" type="MeshInstance3D" parent="TubeLight"]
+transform = Transform3D(0, 1, 0, -1, 0, 0, 0, 0, 1, 0, 0, 0)
+mesh = SubResource("Cap_tube_ends")
+surface_material_override/0 = SubResource("Mat_tube")
+
+[node name="OmniLight3D" type="OmniLight3D" parent="TubeLight"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.3, 0.6)
+light_color = Color(1, 0.82, 0.55, 1)
+light_energy = 2.6
+omni_range = 12.0
+omni_attenuation = 1.2
+shadow_enabled = true
+script = ExtResource("2_script")
